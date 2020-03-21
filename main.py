@@ -12,11 +12,11 @@ async def DBconn():
     cur = conn.cursor()
     return (conn, cur)
 
-
+# Send information about 20 random books from DB
 @routes.get('/get20')
 async def get20(request):
     conn, cur = await DBconn()
-    cur.execute("SELECT * FROM books ORDER BY RANDOM() LIMIT 20")
+    cur.execute("SELECT * FROM books ORDER BY RANDOM() LIMIT 20") # Get 20 random row
     rows = cur.fetchall()
     books = []
     for elem in rows:
@@ -25,9 +25,6 @@ async def get20(request):
     cur.close()
     conn.close()
     return web.json_response(data)
-
-# @routes.get('/get')
-# async def getsomething(request):
 
 
 if __name__ == '__main__':

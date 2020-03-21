@@ -19,8 +19,8 @@ except:
 for i in range(len(table)):
     if table['Theme'][i] in themes:
         try:
-            cur.execute("INSERT INTO books VALUES (nextval('hudb.public.books_id_seq'), '{}', '{}', '{}', '{}', '{}', '{}');".format(\
-                        table['Name'][i], table['Autor'][i], table['Theme'][i], table['Price'][i], table['Mark'][i], table['Image'][i]))
+            data = [table.iloc[i, el] for i in range(6)]
+            cur.execute("INSERT INTO books VALUES (nextval('hudb.public.books_id_seq'), {});".format(','.join(list(map(str,data)))))
             conn.commit()
         except:
             continue
