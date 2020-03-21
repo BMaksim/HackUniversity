@@ -10,15 +10,17 @@ async def DBconn():
     cur = conn.cursor()
     return (conn, cur)
 
-async def getBooks():
-    url = "https://openlibrary.org/api/books?bibkeys=ISBN:0439785960"
+def getBooks():
+    url = "https://www.googleapis.com/books/v1/volumes?q=9780822205104"
+    url = "https://openlibrary.org/api/books?bibkeys=ISBN:0822205106&jscmd=data&format=json"    
     response = requests.get(url)
+    print(type(response.json()))
     return response.json()
 
 @routes.get('/get')
 async def getsomething(request):
-#    conn, cur = await DBconn()
-#    data = await request.json()
+    conn, cur = await DBconn()
+    data = await request.json()
     data = getBooks()
     return web.json_response(data)
 
@@ -27,5 +29,3 @@ if __name__ == '__main__':
     app = web.Application()
     app.add_routes(routes)
     web.run_app(app, path="127.0.0.1", port="8080")
-
-

@@ -44,6 +44,7 @@ pyvenv.cfg
 env/
 venv/
 ENV/
+HUenv/
 env.bak/
 venv.bak/
 pip-selfcheck.json
