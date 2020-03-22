@@ -8,8 +8,10 @@ table = pd.DataFrame({'Name': bigTable["Название"], 'Autor': bigTable["�
                         'Price': bigTable["Розн.цена"], 'Image': bigTable["Изображение"]})
 marks = [round(random.random()*10, 1) for i in range(len(table))]
 table['Mark'] = marks
-themes = ['Дом. Досуг. Кулинария', 'Биографии. Мемуары', 'Энциклопедии', 'Мифы. Легенды. Эпос', 'Политика. Право. Государство', \
-            'Русская классическая и современная литература', 'Учебная и обучающая литература'] 
+images = pd.Series(table["Image"])
+del table["Image"]
+table["Image"] = images
+themes = ['Энциклопедии', 'Учебная и обучающая литература'] 
 try:
     conn = psycopg2.connect("dbname='hudb' user='univ' host='localhost' port='5432' password='12348765'")
     cur = conn.cursor()
@@ -19,11 +21,11 @@ except:
 for i in range(len(table)):
     if table['Theme'][i] in themes:
         try:
-            data = [table.iloc[i, el] for i in range(6)]
-            cur.execute("INSERT INTO books VALUES (nextval('hudb.public.books_id_seq'), {});".format(','.join(list(map(str,data)))))
+            data = [table.iloc[i, el] for el in range(6)]
+            cur.execute("INSERT INTO books VALUES (nextval('hudb.public.books_id_seq'), '{}');".format("','".join(list(map(str,data)))))
             conn.commit()
         except:
-            continue
+            continue    
     else:
         continue
 cur.close()

@@ -2,7 +2,7 @@ from aiohttp import web
 import requests
 import isbnlib
 import psycopg2
-
+from OCR import imageToText
 
 routes = web.RouteTableDef()
 
@@ -16,11 +16,35 @@ async def DBconn():
 @routes.get('/get20')
 async def get20(request):
     conn, cur = await DBconn()
-    cur.execute("SELECT * FROM books ORDER BY RANDOM() LIMIT 20") # Get 20 random row
+    cur.execute("SELECT * FROM books ORDER BY RANDOM() LIMIT 20;") # Get 20 random row
     rows = cur.fetchall()
     books = []
     for elem in rows:
-        books.append({"Name": elem[1], "Autor": elem[2], "Theme": elem[3], "Price": elem[4], "Mark":elem[5], "Image":elem[6]})
+        books.append({"name": elem[1], "author": elem[2], "theme": elem[3], "price": elem[4], "mark":elem[5], "image":elem[6]})
+    data = {"data": books}
+    cur.close()
+    conn.close()
+    return web.json_response(data)
+
+@routes.post('/image-handler')
+async def imageHandler(request):
+    data = await request.json()
+#    img = data["image"]
+    img = bytearray(data["image"])
+    print(img)
+    text = imageToText(img)
+    data = {"data": text}
+    return web.json_response(data)
+
+@routes.post('/get-theme')
+async def getTheme(request):
+    data = await request.json()
+    conn, cur = await DBconn()
+    cur.execute("SELECT * FROM books WHERE theme='{}' ORDER BY RANDOM() LIMIT 10;".format(data["theme"]))
+    rows = cur.fetchall()
+    books = []
+    for elem in rows:
+        books.append({"name": elem[1], "author": elem[2], "theme": elem[3], "price": elem[4], "mark":elem[5], "image":elem[6]})
     data = {"data": books}
     cur.close()
     conn.close()
