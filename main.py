@@ -3,6 +3,7 @@ import requests
 import isbnlib
 import psycopg2
 from OCR import imageToText
+from assistant import requestProcess
 
 routes = web.RouteTableDef()
 
@@ -12,7 +13,7 @@ async def DBconn():
     cur = conn.cursor()
     return (conn, cur)
 
-# Send information about 20 random books from DB
+# Sends information about 20 random books from DB
 @routes.get('/get20')
 async def get20(request):
     conn, cur = await DBconn()
@@ -29,13 +30,12 @@ async def get20(request):
 @routes.post('/image-handler')
 async def imageHandler(request):
     data = await request.json()
-#    img = data["image"]
     img = bytearray(data["image"])
-    print(img)
     text = imageToText(img)
     data = {"data": text}
     return web.json_response(data)
 
+# Sends information about 10 random books from DB with required theme
 @routes.post('/get-theme')
 async def getTheme(request):
     data = await request.json()
@@ -48,6 +48,26 @@ async def getTheme(request):
     data = {"data": books}
     cur.close()
     conn.close()
+    return web.json_response(data)
+
+# Handles the entered command and send information about required books
+@routes.post('/audio-handler')
+async def audioHandler(request):
+    data = await request.json()
+    audio = data["command"]
+    print(audio)
+    res = requestProcess(audio)# Extract key words from command
+    print(res)
+    if res[0] != "":
+        conn, cur = await DBconn()
+        cur.execute("SELECT * FROM books WHERE {} LIKE '%{}%' ORDER BY RANDOM() LIMIT 10;".format(res[0], res[1]))# Looking for required books in DB by command
+        rows = cur.fetchall()
+        books = []
+        for elem in rows:
+            books.append({"name": elem[1], "author": elem[2], "theme": elem[3], "price": elem[4], "mark":elem[5], "image":elem[6]})
+        data = {"data": books}
+    else:
+        data = {"data": "Sorry, your command isn't recognized"}
     return web.json_response(data)
 
 
