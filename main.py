@@ -55,9 +55,7 @@ async def getTheme(request):
 async def audioHandler(request):
     data = await request.json()
     audio = data["command"]
-    print(audio)
     res = requestProcess(audio)# Extract key words from command
-    print(res)
     if res[0] != "":
         conn, cur = await DBconn()
         cur.execute("SELECT * FROM books WHERE {} LIKE '%{}%' ORDER BY RANDOM() LIMIT 10;".format(res[0], res[1]))# Looking for required books in DB by command
@@ -66,8 +64,23 @@ async def audioHandler(request):
         for elem in rows:
             books.append({"name": elem[1], "author": elem[2], "theme": elem[3], "price": elem[4], "mark":elem[5], "image":elem[6]})
         data = {"data": books}
+        cur.close()
+        conn.close()    
     else:
         data = {"data": "Sorry, your command isn't recognized"}
+    return web.json_response(data)
+
+# Search books in DB by given string 
+@routes.post('/search')
+async def search(request):
+    data = await request.json()
+    conn, cur = await DBconn()
+    cur.execute("SELECT * FROM books WHERE theme LIKE '%{a}%' OR autor LIKE '%{a}%' OR name LIKE '%{a}%' ORDER BY RANDOM() LIMIT 10;".format(a = data["text"]))
+    rows = cur.fetchall()
+    books = []
+    for elem in rows:
+        books.append({"name": elem[1], "author": elem[2], "theme": elem[3], "price": elem[4], "mark":elem[5], "image":elem[6]})
+    data = {"data": books}
     return web.json_response(data)
 
 
